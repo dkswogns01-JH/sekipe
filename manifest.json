@@ -1,17 +1,19 @@
 {
-  "short_name": "세키스페",
-  "name": "세키스페 기출 퀴즈",
-  "start_url": "/",
   "id": "/",
+  "name": "セキスペ 科目A 기출",
+  "short_name": "セキスペ",
+  "description": "情報処理安全確保支援士 午前Ⅰ·午前Ⅱ 기출 — 요미가나·한국어 해설",
+  "lang": "ko",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#121212",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#f6f4ee",
+  "theme_color": "#155e63",
   "icons": [
-    {
-      "src": "https://sekipe.vercel.app/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon",
-      "purpose": "any"
-    }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

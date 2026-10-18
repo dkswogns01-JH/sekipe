@@ -1,6 +1,22 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="/manifest.json"></head><body>
-<title>セキスペ 午前Ⅱ 기출</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>セキスペ 科目A 기출</title>
+<meta name="description" content="情報処理安全確保支援士 午前Ⅰ·午前Ⅱ 기출 — 요미가나·한국어 해설">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#fffdf8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b201f" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="セキスペ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -115,7 +131,7 @@ input[type=search]{width:100%;font:inherit;padding:9px 12px;border:1px solid var
 </style>
 
 <header><div class="hd">
-  <div class="brand"><b>情報処理安全確保支援士 午前Ⅱ</b><span>IPA 공식 기출 150문 · 한국어 해설</span><span class="sync" id="sync"></span></div>
+  <div class="brand"><b>情報処理安全確保支援士 科目A</b><span>IPA 공식 기출 午前Ⅰ 180문 · 午前Ⅱ 150문 · 한국어 해설</span><span class="sync" id="sync"></span></div>
   <nav id="tabs">
     <button data-tab="practice">회차별</button>
     <button data-tab="cat">분야별</button>
@@ -136,7 +152,7 @@ const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JS
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
 let D = null, Q = {}, BY = {};
-const S = Object.assign({mode:"both", ruby:true, orig:false, tab:"practice"}, lsGet("sk_settings", {}));
+const S = Object.assign({mode:"both", ruby:true, orig:false, tab:"practice", exam:"午前Ⅱ"}, lsGet("sk_settings", {}));
 let P = lsGet("sk_progress", {p:{}, mocks:[]});   // p: {qid:{c,w,last,ok,t}}
 let view = {name:"home"};
 let mock = null;
@@ -184,7 +200,15 @@ function record(q, choice){
   save();
 }
 const label = key => D.sessions.find(s=>s.key===key)?.label || key;
-const src = q => `出典：${label(q.s)} 情報処理安全確保支援士試験 午前Ⅱ 問${q.n}`;
+const sess = key => D.sessions.find(s=>s.key===key);
+const examOf = q => sess(q.s).exam;
+const src = q => examOf(q)==="午前Ⅰ" ? `出典：${label(q.s)} 高度試験共通 午前Ⅰ 問${q.n}` : `出典：${label(q.s)} 情報処理安全確保支援士試験 午前Ⅱ 問${q.n}`;
+const EXAM = {"午前Ⅰ": {n:30, min:50, pass:18, sub:"科目A-1 · 고도시험 공통 (IT 전반)"}, "午前Ⅱ": {n:25, min:40, pass:15, sub:"科目A-2 · 보안 전문"}};
+const inExam = q => examOf(q)===S.exam;
+const examQs = () => D.questions.filter(inExam);
+function examBar(){
+  return `<div class="bar"><div class="seg" role="group" aria-label="시험">${Object.keys(EXAM).map(k=>`<button data-act="exam" data-v="${k}" aria-pressed="${S.exam===k}">${k} <small style="font-weight:400;opacity:.8">${k==="午前Ⅰ"?"A-1":"A-2"}</small></button>`).join("")}</div><span class="src" style="margin:0;font-family:var(--ko)">${EXAM[S.exam].sub}</span></div>`;
+}
 
 // ── 공통 조각 ──
 function modeBar(){
@@ -269,21 +293,22 @@ function progBar(ids){
 
 // ── 탭 ──
 function practiceHome(){
-  const done = Object.keys(P.p).length, okN = Object.values(P.p).filter(r=>r.ok).length;
-  let h = `<div class="stats"><div><b>${done}</b><span>푼 문항 / 150</span></div><div><b>${done? Math.round(okN/done*100):0}%</b><span>최근 정답률</span></div><div><b>${done-okN}</b><span>오답노트</span></div></div>`;
+  const qs = examQs(), rs = qs.map(q=>P.p[q.id]).filter(Boolean);
+  const done = rs.length, okN = rs.filter(r=>r.ok).length;
+  let h = examBar() + `<div class="stats"><div><b>${done}</b><span>푼 문항 / ${qs.length}</span></div><div><b>${done? Math.round(okN/done*100):0}%</b><span>최근 정답률</span></div><div><b>${done-okN}</b><span>오답노트</span></div></div>`;
   h += `<div class="list">`;
-  for (const s of D.sessions){
+  for (const s of D.sessions.filter(s=>s.exam===S.exam)){
     const ids = BY[s.key]; const pb = progBar(ids);
-    h += `<div class="card"><button class="sess" style="border:0;background:none;padding:0" data-act="open-sess" data-v="${s.key}"><div style="flex:1;min-width:0"><h3>${esc(s.label)} <small>午前Ⅱ · 25問</small></h3>${pb.html}</div><span class="num" style="color:var(--muted);font-size:13px">${pb.ok}/${pb.ok+pb.ng}</span></button>${gridHTML(ids, "go-"+s.key)}</div>`;
+    h += `<div class="card"><button class="sess" style="border:0;background:none;padding:0" data-act="open-sess" data-v="${s.key}"><div style="flex:1;min-width:0"><h3>${esc(s.label)} <small>${s.exam} · ${s.count}問</small></h3>${pb.html}</div><span class="num" style="color:var(--muted);font-size:13px">${pb.ok}/${pb.ok+pb.ng}</span></button>${gridHTML(ids, "go-"+s.key)}</div>`;
   }
   h += `</div>` + foot();
   return h;
 }
 function catHome(){
   const cats = {};
-  for (const q of D.questions) (cats[q.cat] ||= []).push(q.id);
+  for (const q of examQs()) (cats[q.cat] ||= []).push(q.id);
   const order = Object.entries(cats).sort((a,b)=>b[1].length-a[1].length);
-  let h = `<h2>분야별 풀기</h2><p class="src" style="margin:0 0 12px;font-family:var(--ko)">6회차 150문을 분야로 묶었습니다. 많이 나오는 분야부터.</p><div class="list">`;
+  let h = examBar() + `<h2>분야별 풀기</h2><p class="src" style="margin:0 0 12px;font-family:var(--ko)">6회차 ${examQs().length}문을 분야로 묶었습니다. 많이 나오는 분야부터.</p><div class="list">`;
   for (const [c, ids] of order){
     const pb = progBar(ids);
     h += `<div class="card"><button class="sess" style="border:0;background:none;padding:0" data-act="open-cat" data-v="${esc(c)}"><div style="flex:1;min-width:0"><h3 style="font-family:var(--ko)">${esc(c)} <small>${ids.length}문</small></h3>${pb.html}</div><span class="num" style="color:var(--muted);font-size:13px">${pb.ok}/${pb.ok+pb.ng}</span></button></div>`;
@@ -291,9 +316,9 @@ function catHome(){
   return h + `</div>` + foot();
 }
 function wrongHome(){
-  const ids = D.questions.map(q=>q.id).filter(id=>P.p[id] && !P.p[id].ok);
-  const ever = D.questions.map(q=>q.id).filter(id=>P.p[id] && P.p[id].w>0);
-  let h = `<h2>오답노트</h2><p class="src" style="margin:0 0 12px;font-family:var(--ko)">마지막으로 풀었을 때 틀린 문제입니다. 다시 맞히면 목록에서 빠집니다.</p>`;
+  const ids = examQs().map(q=>q.id).filter(id=>P.p[id] && !P.p[id].ok);
+  const ever = examQs().map(q=>q.id).filter(id=>P.p[id] && P.p[id].w>0);
+  let h = examBar() + `<h2>오답노트</h2><p class="src" style="margin:0 0 12px;font-family:var(--ko)">마지막으로 풀었을 때 틀린 문제입니다. 다시 맞히면 목록에서 빠집니다.</p>`;
   if (!ids.length) h += `<div class="card empty">${ever.length? "지금은 틀린 채로 남은 문제가 없어요." : "아직 틀린 문제가 없어요. 회차별 풀기나 모의고사부터 시작해 보세요."}</div>`;
   else h += `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b>${ids.length}문</b><button class="btn pri" data-act="wrong-start">처음부터 다시 풀기</button></div>${gridHTML(ids,"wrong-go")}</div>`;
   if (ever.length > ids.length) h += `<div class="card" style="margin-top:10px"><b>한 번이라도 틀렸던 문제 ${ever.length}문</b>${gridHTML(ever,"ever-go")}</div>`;
@@ -302,14 +327,14 @@ function wrongHome(){
 }
 function vocabHome(){
   const map = new Map();
-  for (const q of D.questions) for (const t of q.tm||[]){
+  for (const q of examQs()) for (const t of q.tm||[]){
     const e = map.get(t.ja); if (e) e.qs.push(q.id); else map.set(t.ja, {...t, qs:[q.id]});
   }
   let items = [...map.values()].sort((a,b)=>b.qs.length-a.qs.length || a.y.localeCompare(b.y,"ja"));
   const f = (view.vq||"").trim().toLowerCase();
   if (f) items = items.filter(t => [t.ja,t.y,t.ko,t.d].some(x=>String(x||"").toLowerCase().includes(f)));
   const rb = S.ruby ? "" : " noruby";
-  let h = `<h2>단어장 <small class="num" style="color:var(--muted);font-size:13px">${items.length}</small></h2>
+  let h = examBar() + `<h2>단어장 <small class="num" style="color:var(--muted);font-size:13px">${items.length}</small></h2>
   <div class="bar"><input type="search" id="vq" placeholder="한자·읽기·한국어로 검색" value="${esc(view.vq||"")}"></div>
   <div class="bar"><button class="chip" data-act="ruby" aria-pressed="${S.ruby}">よみがな</button><button class="chip" data-act="hidemean" aria-pressed="${!!S.hideMean}">뜻 가리기 (눌러서 확인)</button></div>
   <div class="terms ${S.hideMean?"hide-mean":""}">`;
@@ -321,31 +346,34 @@ function vocabHome(){
 
 // ── 모의고사 ──
 function mockHome(){
-  let h = `<h2>모의고사</h2><div class="card"><p style="margin:0">6회차 150문에서 <b>무작위 25문</b> · <b>40분</b> · 합격선 <b>60% (15문)</b>.<br><span style="color:var(--muted);font-size:13px">午前Ⅱ(科目A-2) 실제 시험과 같은 문항 수·시간입니다. 제출 전에는 정답이 보이지 않습니다.</span></p>
+  const E = EXAM[S.exam];
+  let h = examBar() + `<h2>모의고사</h2><div class="card"><p style="margin:0">${S.exam} 6회차 ${examQs().length}문에서 <b>무작위 ${E.n}문</b> · <b>${E.min}분</b> · 합격선 <b>60% (${E.pass}문)</b>.<br><span style="color:var(--muted);font-size:13px">${S.exam}(${S.exam==="午前Ⅰ"?"科目A-1":"科目A-2"}) 실제 시험과 같은 문항 수·시간입니다. 제출 전에는 정답이 보이지 않습니다.</span></p>
   <div class="bar" style="margin-bottom:0"><button class="chip" data-act="mock-src" data-v="all" aria-pressed="${(view.msrc||"all")==="all"}">전체에서</button><button class="chip" data-act="mock-src" data-v="unseen" aria-pressed="${view.msrc==="unseen"}">안 푼 문제 우선</button><button class="chip" data-act="mock-src" data-v="wrong" aria-pressed="${view.msrc==="wrong"}">오답 우선</button></div>
   <div style="margin-top:14px"><button class="btn pri" data-act="mock-start">시작</button></div></div>`;
-  if (P.mocks?.length){
-    h += `<h2>기록</h2><div class="list">` + P.mocks.slice(0,10).map(m=>`<div class="card" style="display:flex;justify-content:space-between;gap:8px;padding:10px 14px"><span>${new Date(m.t).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span class="num ${m.s>=15?"pass":"fail"}">${m.s}/25 ${m.s>=15?"합격":"불합격"}</span><span class="num" style="color:var(--muted)">${Math.floor(m.sec/60)}분 ${m.sec%60}초</span></div>`).join("") + `</div>`;
+  const ms = (P.mocks||[]).filter(m=>(m.e||"午前Ⅱ")===S.exam);
+  if (ms.length){
+    h += `<h2>기록</h2><div class="list">` + ms.slice(0,10).map(m=>`<div class="card" style="display:flex;justify-content:space-between;gap:8px;padding:10px 14px"><span>${new Date(m.t).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span class="num ${m.s>=E.pass?"pass":"fail"}">${m.s}/${E.n} ${m.s>=E.pass?"합격":"불합격"}</span><span class="num" style="color:var(--muted)">${Math.floor(m.sec/60)}분 ${m.sec%60}초</span></div>`).join("") + `</div>`;
   }
   return h + foot();
 }
 function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function startMock(){
-  const all = D.questions.map(q=>q.id);
+  const all = examQs().map(q=>q.id);
   let pool = shuffle(all.slice());
   if (view.msrc==="unseen") pool = [...shuffle(all.filter(id=>!P.p[id])), ...shuffle(all.filter(id=>P.p[id]))];
   if (view.msrc==="wrong") pool = [...shuffle(all.filter(id=>P.p[id]&&!P.p[id].ok)), ...shuffle(all.filter(id=>!(P.p[id]&&!P.p[id].ok)))];
-  mock = {ids: pool.slice(0,25), ans:{}, i:0, start: Date.now(), end: Date.now()+40*60*1000, done:false};
+  const E = EXAM[S.exam];
+  mock = {exam:S.exam, N:E.n, min:E.min, pass:E.pass, ids: pool.slice(0,E.n), ans:{}, i:0, start: Date.now(), end: Date.now()+E.min*60*1000, done:false};
   view = {name:"mock"}; render();
 }
 function mockView(){
   const q = Q[mock.ids[mock.i]];
   let h = modeBar();
-  h += `<div class="qhead"><div class="qno">${mock.i+1} / 25<small>${esc(label(q.s))} 問${q.n}은 제출 후 공개</small></div><span class="timer" id="timer"></span></div>`;
+  h += `<div class="qhead"><div class="qno">${mock.i+1} / ${mock.N}<small>${esc(label(q.s))} 問${q.n}은 제출 후 공개</small></div><span class="timer" id="timer"></span></div>`;
   h += `<div class="card">${stemHTML(q)}<div class="choices">`;
   for (const k of KANA) h += `<button class="ch ${mock.ans[q.id]===k?"pick":""}" data-act="mpick" data-v="${k}"><span class="bub">${k}</span><span class="t">${choiceText(q,k)}</span></button>`;
-  h += `</div></div><div class="nav2"><button class="btn" data-act="mprev" ${mock.i===0?"disabled":""}>← 이전</button><button class="btn pri" data-act="mnext" ${mock.i===24?"disabled":""}>다음 →</button></div>`;
-  h += `<div class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>답안 <b class="num">${Object.keys(mock.ans).length}</b>/25</span><button class="btn" data-act="msubmit">${view.confirm? "정말 제출" : "제출"}</button></div>${view.confirm? `<p class="src" style="font-family:var(--ko)">한 번 더 누르면 채점합니다.${Object.keys(mock.ans).length<25? " 안 고른 문항은 오답 처리돼요.":""}</p>`:""}<div class="grid">${mock.ids.map((id,i)=>`<button class="${mock.ans[id]?"sel":""}" data-act="mjump" data-v="${i}" ${i===mock.i?'style="outline:2px solid var(--ink)"':""}>${i+1}</button>`).join("")}</div></div>`;
+  h += `</div></div><div class="nav2"><button class="btn" data-act="mprev" ${mock.i===0?"disabled":""}>← 이전</button><button class="btn pri" data-act="mnext" ${mock.i===mock.N-1?"disabled":""}>다음 →</button></div>`;
+  h += `<div class="card" style="margin-top:14px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>답안 <b class="num">${Object.keys(mock.ans).length}</b>/${mock.N}</span><button class="btn" data-act="msubmit">${view.confirm? "정말 제출" : "제출"}</button></div>${view.confirm? `<p class="src" style="font-family:var(--ko)">한 번 더 누르면 채점합니다.${Object.keys(mock.ans).length<mock.N? " 안 고른 문항은 오답 처리돼요.":""}</p>`:""}<div class="grid">${mock.ids.map((id,i)=>`<button class="${mock.ans[id]?"sel":""}" data-act="mjump" data-v="${i}" ${i===mock.i?'style="outline:2px solid var(--ink)"':""}>${i+1}</button>`).join("")}</div></div>`;
   return h;
 }
 function submitMock(){
@@ -353,16 +381,16 @@ function submitMock(){
   mock.done = true; clearInterval(tick);
   let s = 0;
   for (const id of mock.ids){ const q = Q[id]; const a = mock.ans[id] || null; if (a===q.a) s++; record(q, a); }
-  const sec = Math.min(40*60, Math.round((Date.now()-mock.start)/1000));
-  P.mocks = [{t:Date.now(), s, sec}, ...(P.mocks||[])].slice(0,30); save();
+  const sec = Math.min(mock.min*60, Math.round((Date.now()-mock.start)/1000));
+  P.mocks = [{t:Date.now(), s, sec, e:mock.exam}, ...(P.mocks||[])].slice(0,30); save();
   mock.score = s; mock.sec = sec;
   view = {name:"mockres"}; render();
 }
 function mockResult(){
-  const s = mock.score, ok = s>=15;
+  const s = mock.score, ok = s>=mock.pass;
   const byCat = {};
   mock.ids.forEach(id=>{ const q=Q[id]; const e=(byCat[q.cat] ||= [0,0]); e[1]++; if (mock.ans[id]===q.a) e[0]++; });
-  let h = `<h2>모의고사 결과</h2><div class="card" style="text-align:center"><div class="big ${ok?"pass":"fail"}">${s}<span style="font-size:20px;color:var(--muted)">/25</span></div><div style="font-weight:700" class="${ok?"pass":"fail"}">${Math.round(s/25*100)}점 · ${ok?"합격선 통과":"합격선(60점) 미달"}</div><div class="src" style="font-family:var(--ko)">소요 ${Math.floor(mock.sec/60)}분 ${mock.sec%60}초</div></div>`;
+  let h = `<h2>모의고사 결과</h2><div class="card" style="text-align:center"><div class="big ${ok?"pass":"fail"}">${s}<span style="font-size:20px;color:var(--muted)">/${mock.N}</span></div><div style="font-weight:700" class="${ok?"pass":"fail"}">${mock.exam} · ${Math.round(s/mock.N*100)}점 · ${ok?"합격선 통과":"합격선(60점) 미달"}</div><div class="src" style="font-family:var(--ko)">소요 ${Math.floor(mock.sec/60)}분 ${mock.sec%60}초</div></div>`;
   h += `<h2>분야별</h2><div class="card">` + Object.entries(byCat).sort((a,b)=>b[1][1]-a[1][1]).map(([c,[o,n]])=>`<div style="display:flex;justify-content:space-between"><span>${esc(c)}</span><span class="num">${o}/${n}</span></div>`).join("") + `</div>`;
   h += `<h2>문항별 (눌러서 해설)</h2><div class="card"><div class="grid">${mock.ids.map((id,i)=>`<button class="${mock.ans[id]===Q[id].a?"ok":"ng"}" data-act="mres-go" data-v="${i}">${i+1}</button>`).join("")}</div></div>`;
   h += `<div class="nav2"><button class="btn" data-act="tab" data-v="mock">모의고사 홈</button><button class="btn pri" data-act="mock-start">새 모의고사</button></div>`;
@@ -371,13 +399,13 @@ function mockResult(){
 function mockReview(){
   const q = Q[mock.ids[view.i]], picked = mock.ans[q.id] || null;
   let h = modeBar();
-  h += `<div class="qhead"><div class="qno">${view.i+1} / 25<small>${esc(label(q.s))} 問${q.n}</small></div><button class="link" data-act="mres">결과로</button></div><div class="card">${stemHTML(q)}<div class="choices">`;
+  h += `<div class="qhead"><div class="qno">${view.i+1} / ${mock.N}<small>${esc(label(q.s))} 問${q.n}</small></div><button class="link" data-act="mres">결과로</button></div><div class="card">${stemHTML(q)}<div class="choices">`;
   for (const k of KANA){
     const cls = "ch" + (k===q.a? " right" : k===picked? " wrong":"");
     const why = k!==q.a && q.wr[k] ? `<div class="why">${nl(q.wr[k])}</div>` : "";
     h += `<button class="${cls}" disabled><span class="bub">${k}</span><span class="t">${choiceText(q,k)}${why}</span></button>`;
   }
-  h += `</div>${explainHTML(q, picked)}</div><div class="nav2"><button class="btn" data-act="mrv" data-v="${view.i-1}" ${view.i===0?"disabled":""}>← 이전</button><button class="btn pri" data-act="mrv" data-v="${view.i+1}" ${view.i===24?"disabled":""}>다음 →</button></div>`;
+  h += `</div>${explainHTML(q, picked)}</div><div class="nav2"><button class="btn" data-act="mrv" data-v="${view.i-1}" ${view.i===0?"disabled":""}>← 이전</button><button class="btn pri" data-act="mrv" data-v="${view.i+1}" ${view.i===mock.N-1?"disabled":""}>다음 →</button></div>`;
   return h;
 }
 let tick = null;
@@ -393,7 +421,7 @@ function runTimer(){
 }
 
 function foot(){
-  return `<p class="foot">문제·정답 출처: IPA 情報処理安全確保支援士試験 午前Ⅱ 公開問題・解答例 (令和5〜7年度). 문제 원문은 IPA 공개 자료를 그대로 옮겼으며, 요미가나·한국어 번역·해설은 이 앱에서 덧붙인 것입니다 (IPA는 午前 해설을 공개하지 않음). 해설은 AI가 작성하고 원문 이미지·공식 정답과 대조해 별도로 검수했지만, 애매하면 각 문항의 <b>원문 이미지</b>를 기준으로 보세요. 기록은 ${dbDoc? "계정에 동기화됩니다." : "이 기기 브라우저에 저장됩니다."}</p>`;
+  return `<p class="foot">문제·정답 출처: IPA 情報処理安全確保支援士試験 午前Ⅱ 및 高度試験共通 午前Ⅰ 公開問題・解答例 (令和5〜7年度). 문제 원문은 IPA 공개 자료를 그대로 옮겼으며, 요미가나·한국어 번역·해설은 이 앱에서 덧붙인 것입니다 (IPA는 午前 해설을 공개하지 않음). 해설은 AI가 작성하고 원문 이미지·공식 정답과 대조해 별도로 검수했지만, 애매하면 각 문항의 <b>원문 이미지</b>를 기준으로 보세요. 기록은 ${dbDoc? "계정에 동기화됩니다." : "이 기기 브라우저에 저장됩니다."}</p>`;
 }
 
 // ── 렌더 ──
@@ -419,6 +447,7 @@ document.addEventListener("click", e => {
   const b = e.target.closest("[data-act]"); if (!b) return;
   const a = b.dataset.act, v = b.dataset.v;
   if (a==="mode") return setS("mode", v);
+  if (a==="exam") { view = {name:"home", msrc:view.msrc}; return setS("exam", v); }
   if (a==="ruby") return setS("ruby", !S.ruby);
   if (a==="orig") { view.hideImg = false; return setS("orig", !S.orig); }
   if (a==="img") { const q = curQ(); const shown = (S.orig||q.fig) && !view.hideImg; if (shown){ if (S.orig) setS("orig", false); else { view.hideImg = true; render(); } } else { view.hideImg = false; if (q.fig) render(); else setS("orig", true); } return; }
@@ -428,7 +457,7 @@ document.addEventListener("click", e => {
   if (a==="vmore") { view.vlimit = (view.vlimit||120) + 120; return render(); }
   if (a.startsWith("go-")) { const k = a.slice(3); return openQ(BY[k], +v, label(k)); }
   if (a==="open-sess") return openQ(BY[v], 0, label(v));
-  if (a==="open-cat") { const ids = D.questions.filter(q=>q.cat===v).map(q=>q.id); return openQ(ids, 0, v); }
+  if (a==="open-cat") { const ids = examQs().filter(q=>q.cat===v).map(q=>q.id); return openQ(ids, 0, v); }
   if (a==="wrong-start") return openQ(view.wrongIds.slice(), 0, "오답노트");
   if (a==="wrong-go") return openQ(view.wrongIds.slice(), +v, "오답노트");
   if (a==="ever-go") return openQ(view.everIds.slice(), +v, "틀렸던 문제");
@@ -468,4 +497,10 @@ fetch("data.json").then(r=>r.json()).then(d => {
 })();
 </script>
 
-</body></html>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(()=>{}); });
+}
+</script>
+</body>
+</html>
