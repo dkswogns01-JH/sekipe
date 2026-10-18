@@ -1,0 +1,15 @@
+{
+  "short_name": "세키스페",
+  "name": "세키스페 기출 퀴즈",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "icons": [
+    {
+      "src": "https://sekipe.vercel.app/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
