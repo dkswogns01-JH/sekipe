@@ -1,5 +1,5 @@
 // オフライン対応: 앱 화면·데이터는 네트워크 우선(업데이트 반영), 문제 이미지·폰트는 캐시 우선.
-const VERSION = "v2-20261019";
+const VERSION = "v3-20261103";
 const SHELL = ["/", "/index.html", "/data.json", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", e => {
